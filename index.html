@@ -97,28 +97,29 @@
   </div>
 
   <!-- Firebase SDK -->
-  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js"></script>
-  <script>
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+    import { getDatabase, ref, set, onValue } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+
     const firebaseConfig = {
       apiKey: "AIzaSyDpXMiJS6qCnNcP_q40R_3aztje-CoQscA",
       authDomain: "wishcard-553b6.firebaseapp.com",
       databaseURL: "https://wishcard-553b6-default-rtdb.firebaseio.com",
       projectId: "wishcard-553b6",
-      storageBucket: "wishcard-553b6.firebasestorage.app",
+      storageBucket: "wishcard-553b6.appspot.com",
       messagingSenderId: "764939060538",
       appId: "1:764939060538:web:74ce433f52a2d62a81fc03"
     };
 
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.database();
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
 
     function getCardId() {
       const urlParams = new URLSearchParams(window.location.search);
       return urlParams.get('id') || 'default';
     }
 
-    function saveWishes() {
+    window.saveWishes = function() {
       const data = {
         name1: document.getElementById('name1').value,
         name2: document.getElementById('name2').value,
@@ -129,24 +130,26 @@
         data.wishes1.push(document.getElementById(`wish1-${i}`).value);
         data.wishes2.push(document.getElementById(`wish2-${i}`).value);
       }
-      db.ref('cards/' + getCardId()).set(data);
-      alert("✅ 願望已同步保存！");
+      set(ref(db, 'cards/' + getCardId()), data)
+        .then(() => alert("✅ 願望已同步保存！"))
+        .catch((error) => alert("❌ 儲存失敗：" + error.message));
     }
 
     function loadWishes() {
-      db.ref('cards/' + getCardId()).on('value', (snapshot) => {
+      const cardRef = ref(db, 'cards/' + getCardId());
+      onValue(cardRef, (snapshot) => {
         const data = snapshot.val();
         if (!data) return;
         document.getElementById('name1').value = data.name1 || '';
         document.getElementById('name2').value = data.name2 || '';
         for (let i = 1; i <= 5; i++) {
-          document.getElementById(`wish1-${i}`).value = data.wishes1?.[i-1] || '';
-          document.getElementById(`wish2-${i}`).value = data.wishes2?.[i-1] || '';
+          document.getElementById(`wish1-${i}`).value = data.wishes1?.[i - 1] || '';
+          document.getElementById(`wish2-${i}`).value = data.wishes2?.[i - 1] || '';
         }
       });
     }
 
-    window.onload = loadWishes;
+    window.addEventListener('load', loadWishes);
   </script>
 </body>
 </html>
