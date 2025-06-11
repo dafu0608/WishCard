@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>兩人願望卡（同步版）</title>
+  <style>
+    body {
+      font-family: 'Arial', sans-serif;
+      background-color: #f9f9f9;
+      margin: 0;
+      padding: 1rem;
+    }
+    .container {
+      max-width: 600px;
+      margin: auto;
+      background-color: #fff;
+      padding: 1.5rem;
+      border-radius: 8px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    }
+    h1, h2 {
+      text-align: center;
+      color: #333;
+    }
+    .section {
+      margin-bottom: 1.5rem;
+    }
+    label {
+      display: block;
+      margin-top: 1rem;
+      margin-bottom: 0.25rem;
+      font-weight: bold;
+      color: #555;
+    }
+    input[type="text"] {
+      width: 100%;
+      padding: 0.6rem;
+      font-size: 1rem;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      box-sizing: border-box;
+      margin-bottom: 0.75rem;
+    }
+    button {
+      width: 100%;
+      padding: 0.8rem;
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      font-size: 1.1rem;
+      border-radius: 6px;
+      cursor: pointer;
+      margin-top: 1rem;
+    }
+    button:hover {
+      background-color: #45a049;
+    }
+    .footer {
+      text-align: center;
+      font-size: 0.85rem;
+      color: #888;
+      margin-top: 2rem;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>兩人願望卡</h1>
+
+    <div class="section">
+      <label for="name1">你的名字：</label>
+      <input type="text" id="name1" placeholder="輸入你的名字" />
+      <h2>你的願望</h2>
+      <input type="text" id="wish1-1" placeholder="願望 1" />
+      <input type="text" id="wish1-2" placeholder="願望 2" />
+      <input type="text" id="wish1-3" placeholder="願望 3" />
+      <input type="text" id="wish1-4" placeholder="願望 4" />
+      <input type="text" id="wish1-5" placeholder="願望 5" />
+    </div>
+
+    <div class="section">
+      <label for="name2">對方的名字：</label>
+      <input type="text" id="name2" placeholder="輸入對方的名字" />
+      <h2>對方的願望</h2>
+      <input type="text" id="wish2-1" placeholder="願望 1" />
+      <input type="text" id="wish2-2" placeholder="願望 2" />
+      <input type="text" id="wish2-3" placeholder="願望 3" />
+      <input type="text" id="wish2-4" placeholder="願望 4" />
+      <input type="text" id="wish2-5" placeholder="願望 5" />
+    </div>
+
+    <button onclick="saveWishes()">💾 儲存願望</button>
+    <div class="footer">
+      與對方共用相同網址（例如 <code>?id=love123</code>），即可同步資料。
+    </div>
+  </div>
+
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js"></script>
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyDpXMiJS6qCnNcP_q40R_3aztje-CoQscA",
+      authDomain: "wishcard-553b6.firebaseapp.com",
+      databaseURL: "https://wishcard-553b6-default-rtdb.firebaseio.com",
+      projectId: "wishcard-553b6",
+      storageBucket: "wishcard-553b6.firebasestorage.app",
+      messagingSenderId: "764939060538",
+      appId: "1:764939060538:web:74ce433f52a2d62a81fc03"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+
+    function getCardId() {
+      const urlParams = new URLSearchParams(window.location.search);
+      return urlParams.get('id') || 'default';
+    }
+
+    function saveWishes() {
+      const data = {
+        name1: document.getElementById('name1').value,
+        name2: document.getElementById('name2').value,
+        wishes1: [],
+        wishes2: []
+      };
+      for (let i = 1; i <= 5; i++) {
+        data.wishes1.push(document.getElementById(`wish1-${i}`).value);
+        data.wishes2.push(document.getElementById(`wish2-${i}`).value);
+      }
+      db.ref('cards/' + getCardId()).set(data);
+      alert("✅ 願望已同步保存！");
+    }
+
+    function loadWishes() {
+      db.ref('cards/' + getCardId()).on('value', (snapshot) => {
+        const data = snapshot.val();
+        if (!data) return;
+        document.getElementById('name1').value = data.name1 || '';
+        document.getElementById('name2').value = data.name2 || '';
+        for (let i = 1; i <= 5; i++) {
+          document.getElementById(`wish1-${i}`).value = data.wishes1?.[i-1] || '';
+          document.getElementById(`wish2-${i}`).value = data.wishes2?.[i-1] || '';
+        }
+      });
+    }
+
+    window.onload = loadWishes;
+  </script>
+</body>
+</html>
